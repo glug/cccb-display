@@ -1,0 +1,17 @@
+# Boring file regexps:
+
+### version control systems
+# darcs
+_darcs
+.darcsrepo
+
+### miscellaneous
+# backup files
+~*
+*.bak
+*.BAK
+# vi, emacs tags
+tags
+TAGS
+# mac os finder
+.DS_Store
