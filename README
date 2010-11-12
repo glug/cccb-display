@@ -4,4 +4,5 @@ name            cccb-display
 description     UDP packet interface for LED display in CCCB
 depends_run     lua >= 5.1
                 luasocket >= 2.0
+license         WTFPL 2 or newer
 
