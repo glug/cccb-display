@@ -3,6 +3,8 @@
 
 -- dependencies <<<
 
+require "luarocks.loader"
+
 local require   = require
 local display   = require "display"
 local socket    = require "socket"
