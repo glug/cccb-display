@@ -235,8 +235,8 @@ if not dbg then dbg = function( ) end end
 
 -- debug output
 --setdebugmode("abchms")              -- activate all / use this for testing
-setdebugmode("abchs")              -- 'normal' debugging (no msg content)
---setdebugmode("")                    -- only errors
+--setdebugmode("abchs")              -- 'normal' debugging (no msg content)
+setdebugmode("")                    -- only errors
 --setdebugmode(nil)                   -- deactivate completely
 
 -- seed RNG
@@ -248,10 +248,10 @@ setheight(20)                       -- display height in characters
 setvpixels(3)                       -- virtual pixels between lines
 
 -- udp socket parameters
-socket_ip       = "172.23.42.120"   -- IP of display
+socket_ip       = "172.23.42.29"    -- IP of display
 socket_port     = "2342"            -- port for connection
-socket_timeout  = 0.4               -- maximum UDP response wait time
-socket_retry    = 2                 -- maximum number of retries for sending
+socket_timeout  = 0                 -- maximum UDP response wait time
+socket_retry    = 0                 -- maximum number of retries for sending
 
 bootscreen = 
 [[  ,cCCCCCCCCCCCCCCCCCCCCCc,                             ]]..
@@ -273,7 +273,7 @@ bootscreen =
 [[                                            |           ]]..
 [[                                            \           ]]..
 [[                                             \          ]]..
-[[  Chaos Twitter: http://twitter.com/chaosknoten         ]]
+[[                                                        ]]
 
 -- -------------------------------------------------------------------------
 

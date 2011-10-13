@@ -1,17 +1,8 @@
-# Boring file regexps:
-
-### version control systems
-# darcs
-_darcs
-.darcsrepo
-
-### miscellaneous
-# backup files
 ~*
-*.bak
-*.BAK
-# vi, emacs tags
-tags
-TAGS
-# mac os finder
+.*.sw?
 .DS_Store
+_purge
+bots
+# old darks repo
+.darcsrepo
+_darcs

@@ -76,28 +76,6 @@ sock:settimeout(display.config.socket_timeout)
 
 -- packet handling <<<
 
--- The display uses UDP.  This means that some packets *might* be dropped on
--- the way.  In most cases the evaluation just took too long and the packet 
--- has been sent and received twice by the display.  This results in several 
--- responses of which only one is removed from the queue by the sending 
--- function.  In that case, all other responses need to be removed so that 
--- the response-means-success-strategy keeps working.
-
--- current state: unremoved resent packages?
-local resent_packets = false
-
--- remove unwanted responses
-local function bogus_remove( )
-    if resent_packets then
-        sock:settimeout(0)
-        while sock:receive() do
-            debugs "!"
-        end
-        sock:settimeout(display.config.socket_timeout)
-        resent_packets = false
-    end
-end
-
 -- convert one or many values into a single string
 local function convert_data(...)
     local t = {...}
@@ -115,36 +93,9 @@ local function convert_data(...)
     return table.concat(t)
 end
 
---! \fn display.udp.sendpacket
---! \brief Send a (raw) packet to the display.
---! TODO document this
-function sendpacket( msg , noresend )
-    -- remove old packets
-    bogus_remove()
-    -- send, maybe retry
-    for n_retry = 0, display.config.socket_retry or 0 do
-        sock:send(msg)
-        local ret = sock:receive()
-        if ret or noresend then
-            -- success
-            debugs(ret and ";" or "#")
-            return ret
-        end
-        -- failure
-        debugs "*"
-        resent = true
-        sleep(tostring(2^n_retry/10))
-    end
-    -- permanently failed sending
-    debugs "#"
-    return nil, msg
-end
-
 --! \fn display.udp.sendcommand
 --! \brief Assembles and sends a packet for the display.
 --! TODO document this
---! TODO append zero for write_std if not present
---! TODO find better word for "fill" / repat
 --! TODO split up?
 function sendcommand( cmd, x, y, w, h, data, fill )
     -- set default values
@@ -154,7 +105,6 @@ function sendcommand( cmd, x, y, w, h, data, fill )
     h = h or 0
     data = data or ""
     -- XXX command specific stuff
-    local resetting = cmd == 0x0b   -- hard reset will not send a response
     local checkzero = cmd == 0x04   -- write_std MUST be zero terminated
     -- if debugging, warn for any bad command
     if _debug then
@@ -197,7 +147,7 @@ function sendcommand( cmd, x, y, w, h, data, fill )
     debugm(dumpstring(data))
     debugh '"'
     -- send packet
-    sendpacket(header..data, resetting)
+    sock:send(header..data)
 end
 
 -- --------------------------------------------------------------------- >>>
@@ -227,9 +177,9 @@ function set_stdlum(...)    return sendcommand(0x06,0,0,0,0,...)    end
 function setlum(...)        return sendcommand(0x07,0,0,0,0,...)    end
 -- x08  displayreset    re-initialize display and redraw screen content
 function displayreset(...)  return sendcommand(0x08,...)            end
--- x09  read_txt    read display contents [resp. same length as sent packet]
+-- x09  read_txt    OBSOLETE read display contents [resp. same length as sent packet]
 function read_txt(...)      return sendcommand(0x09,0,0,0,0,...)    end
--- x0A  read_lum    read luminance values [resp. same length as sent packet]
+-- x0A  read_lum    OBSOLETE read luminance values [resp. same length as sent packet]
 function read_lum(...)      return sendcommand(0x0a,0,0,0,0,...)    end
 -- x0B  reboot      reboot display (no response sent)
 function reboot(...)        return sendcommand(0x0b,...)            end
