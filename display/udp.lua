@@ -148,6 +148,7 @@ function sendcommand( cmd, x, y, w, h, data, fill )
     debugh '"'
     -- send packet
     sock:send(header..data)
+    return sock:receive()
 end
 
 -- --------------------------------------------------------------------- >>>

@@ -250,7 +250,7 @@ setvpixels(3)                       -- virtual pixels between lines
 -- udp socket parameters
 socket_ip       = "172.23.42.29"    -- IP of display
 socket_port     = "2342"            -- port for connection
-socket_timeout  = 0                 -- maximum UDP response wait time
+socket_timeout  = 0.000005          -- maximum UDP response wait time
 socket_retry    = 0                 -- maximum number of retries for sending
 
 bootscreen = 
