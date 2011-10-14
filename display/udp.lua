@@ -244,6 +244,26 @@ function allgfx(...)
     gfx_display()
 end
 
+function fungfx(f,...)
+    local img = {}
+    local v1height = display.config.vpixels + 8
+    -- iterate over lines
+    for ty = 1, display.config.height_txt do
+        local line = {}
+        -- iterate over bytes in line
+        for x = 1, display.config.width do
+            -- iterate over bits
+            local byte = 0
+            for ly = 1, 8 do
+                byte = byte*2 + (f(x, (ty-1)*v1height + ly, ...) and 1 or 0)
+            end
+            table.insert(line, string.char(byte))
+        end
+        table.insert(img, table.concat(line))
+    end
+    gfx_multiput(0, table.concat(img))
+end
+
 -- --------------------------------------------------------------------- >>>
 
 return display.udp
