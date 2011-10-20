@@ -1,3 +1,4 @@
+#!/usr/bin/lua
 require"display";F=function(f,t,s,b)for i=f,t,s do b(i)end
 end;C=function(c,l,r)return(c and l or r)end;d=display;c=
 d.config;w,h=c.width,c.height-1;u=d.udp;p=u.gfx_rawput;r=
