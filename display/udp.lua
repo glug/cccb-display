@@ -63,13 +63,13 @@ sock:settimeout(display.config.socket_timeout)
 --  var:    dat data for command (variable length, max.: 1450 due to UDP
 --              packet length limit)
 --              txt:  codepage 437 encoded text (ASCII + IBM graphic chars)
---              gfx:  series of byte-sized 8-pixel (vertical) blocks;
---                    highest bit controls topmost pixel
---              number: automatically encoded in network order, if this is 
+--              gfx:  series of byte-sized 8-pixel (horizontal) blocks;
+--                    highest bit controls leftmost pixel
+--              number: automatically encoded in network order, if this is
 --                    unwanted, use tostring(...) first.
 -- }
 --
--- Unneeded packet fields can be filled with anything.  In particular, the 
+-- Unneeded packet fields can be filled with anything.  In particular, the
 -- data field may be missing (length zero).
 
 
@@ -115,7 +115,7 @@ function sendcommand( cmd, x, y, w, h, data, fill )
         elseif cmd == 0x0c then debugline"BRokEn COMMAND 0x0c"
         elseif cmd == 0x0e then debugline"BRokEn COMMAND 0x0e"
         elseif cmd == 0x0f then debugline"BRokEn COMMAND 0x0f"
-        elseif cmd >  0x11 then debugline"UNDEFINED COMMAND"
+        elseif cmd >  0x12 then debugline"UNDEFINED COMMAND"
         end
     end
     -- handle non-string data, encode numbers instead of tostring'ing
@@ -155,11 +155,11 @@ end
 
 -- low-level communication API (direct display commands) <<<
 
--- These commands supply intermingled default parameters.  Trailing 
+-- These commands supply intermingled default parameters.  Trailing
 -- arguments are filled in from different starting positions.
 -- The display usually responds with the received packet with the command
--- replaced by ACK.  However, the read_xyz commands change the data field to 
--- match the corresponding display state information and reboot does not 
+-- replaced by ACK.  However, the read_xyz commands change the data field to
+-- match the corresponding display state information and reboot does not
 -- send a response at all.
 
 -- x00  ACK         -- UNUSED (positive response)
@@ -190,11 +190,11 @@ function gfx_allpattern(...)return sendcommand(0x0c,0,0,0,0,...)    end
 function fadeout(...)       return sendcommand(0x0d,0,0,0,0,...)    end
 -- x0E  gfx_line    -- UNUSED (BROKEN FIXME) send one line of pixel values
 -- x0F  gfx_2line   -- UNUSED (BROKEN FIXME) send two lines of pixels
--- x10  gfx_rawput  write continuous pixel block <dat> of length <len> into
+-- x12  gfx_rawput  write continuous pixel block <dat> of length <len> into
 --                  the display buffer at offset <off>
-function gfx_rawput(off,len,...)return sendcommand(0x10,off,len,0,0,...)end
+function gfx_rawput(off,len,...)return sendcommand(0x12,off,len,0,0,...)end
 -- x11  gfx_display re-draw display from buffer (after a block of rawputs)
-function gfx_display(...)   return sendcommand(0x11,...)            end
+--function gfx_display(...)   return sendcommand(0x11,...)            end
 
 -- --------------------------------------------------------------------- >>>
 
@@ -244,7 +244,7 @@ function allgfx(...)
     gfx_display()
 end
 
-function fungfx(f,...)
+function oldfungfx(f,...)
     local img = {}
     local v1height = display.config.vpixels + 8
     -- iterate over lines
@@ -262,6 +262,42 @@ function fungfx(f,...)
         table.insert(img, table.concat(line))
     end
     gfx_multiput(0, table.concat(img))
+end
+
+function fungfx(f,...)
+    local img = {}
+    local v1height = display.config.vpixels + 8
+    -- iterate over lines
+    for y = 1, display.config.vheight do
+        if ((y-1) % v1height) < 8 then
+            for x = 1, display.config.width_txt do
+                local byte = 0
+                for lx = 1, 8 do
+                    byte = byte*2 + (f(x*8+lx, y, ...) and 1 or 0)
+                end
+                table.insert(img, string.char(byte))
+            end
+        end
+    end
+    gfx_multiput(0, table.concat(img))
+end
+
+function bitmap(t)
+    local result = {}
+    local e = {}    -- error catcher
+    local v1height = display.config.vpixels + 8
+    for y = 1, display.config.vheight do
+        if ((y-1) % v1height) < 8 then
+            for x = 0, display.config.width_txt-1 do
+                local byte = 0
+                for lx = 1, 8 do
+                    byte = byte * 2 + ((t[y] or e)[x*8+lx] and 1 or 0)
+                end
+                table.insert(result, string.char(byte))
+            end
+        end
+    end
+    gfx_multiput(0, table.concat(result))
 end
 
 -- --------------------------------------------------------------------- >>>
